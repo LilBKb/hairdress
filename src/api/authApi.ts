@@ -1,4 +1,15 @@
-const API_BASE = 'http://localhost:3000/api'
+import { apiClient } from './client'
+
+const authApiPath = '/api/v1/auth/'
+
+export interface User {
+  username: string;
+  full_name: string;
+  phone_number: string;
+  is_verified: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface LoginRequest {
   username: string;
@@ -8,58 +19,66 @@ export interface LoginRequest {
 export interface RegisterRequest {
   username: string;
   password: string;
-  fullName: string;
-  phoneNumber: string;
+  full_name: string;
+  phone_number: string;
+}
+
+export interface GetMeResponse {
+  user: User;
 }
 
 export interface AuthResponse {
-  token: string;
-  user: {
-    username: string;
-    fullName: string;
-    phoneNumber: string;
-    isVerified: boolean;
-    createdAt: string;
-    updatedAt: string;
-  };
+  access_token: string;
+  refresh_token: string;
+  user: User;
 }
 
-async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = localStorage.getItem('token')
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
-  }
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
+export interface RequestEmailVerificationRequest {
+  email: string;
+  operation_id?: string;
+}
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  })
+export interface ApproveCodeRequest {
+  email?: string;
+  phone_number?: string;
+  code: string;
+  operation_id: string;
+}
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Ошибка запроса' }))
-    throw new Error(error.message || 'Ошибка запроса')
-  }
-
-  return response.json()
+export interface VerifyEmailResponse {
+  access_token: string;
+  refresh_token: string;
+  success: boolean;
 }
 
 export const authApi = {
-  register: (data: RegisterRequest) =>
-    request<AuthResponse>('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
+  register: async (data: RegisterRequest): Promise<AuthResponse> => {
+    const res = await apiClient.post(authApiPath+'register', data)
+    return res.data;
+  },
 
-  login: (data: LoginRequest) =>
-    request<AuthResponse>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
+  login: async (data: LoginRequest): Promise<AuthResponse> => {
+    const res = await apiClient.post(authApiPath+'login', data)
+    return res.data;
+  },
 
-  getMe: () =>
-    request<AuthResponse['user']>('/auth/me'),
+  getMe: async (): Promise<GetMeResponse> => {
+    const res = await apiClient.get(authApiPath+'me')
+    return res.data;
+  },
+
+  requestEmailVerification: async (data: RequestEmailVerificationRequest): Promise<{ operation_id: string }> => {
+    const res = await apiClient.post(authApiPath+'request-email-verification', data)
+    return res.data;
+  },
+
+  verifyEmail: async (token: string): Promise<VerifyEmailResponse> => {
+    const res = await apiClient.post(authApiPath+'verify-email', { token })
+    return res.data;
+  },
+
+  approveCode: async (data: ApproveCodeRequest): Promise<{ token: string }> => {
+    const res = await apiClient.post(authApiPath+'approve-code', data)
+    return res.data;
+  },
 }
