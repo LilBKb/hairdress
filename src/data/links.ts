@@ -1,0 +1,45 @@
+export const redFoxLinks=[
+    {
+        name:'Контакты',
+        url:'/redFoxContancts'
+    },
+    {
+        name:'Услуги',
+        url:'/redFoxServices'
+    },
+    {
+        name:'Записи',
+        url:'/redFoxReserve'
+    },
+    {
+        name:'Авторизация',
+        url:'/auth'
+    },
+    {
+        name:'Регистрация',
+        url:'/registration'
+    }
+]
+
+export const barbershopLinks=[
+    {
+        name:'Контакты',
+        url:'/barbershopContacts'
+    },
+    {
+        name:'Услуги',
+        url:'barbershopServices'
+    },
+    {
+        name:'Записи',
+        url:'/barbershopServices'
+    },
+    {
+        name:'Авторизация',
+        url:'/auth'
+    },
+    {
+        name:'Регистрация',
+        url:'/registration'
+    }
+]
