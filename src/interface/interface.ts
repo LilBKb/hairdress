@@ -6,7 +6,12 @@ export type Branch={
     color:string,
     logo:string,
     url:string,
-    element:ReactElement
+    element:ReactElement,
+    images:ImageType[]
+}
+export type ImageType={
+    src:string,
+    alt:string
 }
 
 export type BranchLinks={
