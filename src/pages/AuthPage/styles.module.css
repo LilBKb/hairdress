@@ -1,43 +1,125 @@
+.page {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #fdf0e4 0%, #ffffff 50%, #e0f2f1 100%);
+}
+
 .container {
-  max-width: 400px;
-  margin: 50px auto;
-  padding: 0 16px;
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--radius);
+  padding: 40px 32px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .title {
-  margin-bottom: 24px;
+  font-family: "Montserrat", sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 32px;
 }
 
 .form {
   display: flex;
   flex-direction: column;
+  gap: 20px;
 }
 
 .field {
-  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .label {
-  display: block;
-  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .input {
   width: 100%;
-  padding: 8px 12px;
-  box-sizing: border-box;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  font-size: 15px;
+  background: rgba(255, 255, 255, 0.5);
+  transition: all 0.25s ease;
+  color: var(--text);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--fox);
+  box-shadow: 0 0 0 4px rgba(240, 124, 9, 0.1);
 }
 
 .button {
   width: 100%;
-  padding: 10px;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--fox), #f59e0b);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.02em;
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(240, 124, 9, 0.35);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .error {
-  color: red;
-  margin-bottom: 16px;
+  font-size: 14px;
+  color: #dc2626;
+  text-align: center;
+  padding: 10px 16px;
+  background: #fef2f2;
+  border-radius: 10px;
+  margin: 0;
 }
 
 .link {
-  margin-top: 16px;
+  margin-top: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.link a {
+  color: var(--fox);
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.link a:hover {
+  color: var(--fox-dark);
 }
