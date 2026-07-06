@@ -1,4 +1,4 @@
-import axios, { type AxiosError, type AxiosRequestConfig } from 'axios'
+import axios, { type AxiosError, type AxiosRequestConfig, type AxiosResponse } from 'axios'
 import { tokenStorage } from '../store/token/tokenStorage'
 
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:8080';
@@ -86,10 +86,10 @@ apiClient.interceptors.response.use(
 // This makes React StrictMode's intentional double-firing of useEffect harmless
 // for every component in the app without any per-component boilerplate.
 {
-  const pending = new Map<string, Promise<any>>();
+  const pending = new Map<string, Promise<AxiosResponse>>();
   const _get = apiClient.get.bind(apiClient);
 
-  (apiClient as any).get = (url: string, config?: AxiosRequestConfig) => {
+  apiClient.get = (url: string, config?: AxiosRequestConfig) => {
     const key = config?.params
       ? `${url}\0${JSON.stringify(config.params)}`
       : url;

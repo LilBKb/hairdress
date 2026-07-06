@@ -123,3 +123,13 @@
 .link a:hover {
   color: var(--fox-dark);
 }
+
+.success {
+  font-size: 14px;
+  color: #16a34a;
+  text-align: center;
+  padding: 10px 16px;
+  background: #f0fdf4;
+  border-radius: 10px;
+  margin: 0;
+}

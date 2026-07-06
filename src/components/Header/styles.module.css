@@ -1,9 +1,4 @@
 .container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 16px 24px;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -11,6 +6,15 @@
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+.inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 24px;
 }
 
 .dark {
@@ -40,4 +44,53 @@
 .dark a:hover {
   color: #fff;
   background: rgba(255, 255, 255, 0.1);
+}
+
+.linkButton {
+  padding: 8px 20px;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 0.25s ease;
+  letter-spacing: 0.01em;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.linkButton:hover {
+  color: var(--text);
+  background: var(--border);
+}
+
+.dark .linkButton {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.dark .linkButton:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.authSection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.userName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fox);
+  padding: 8px 12px;
+}
+
+.dark .userName {
+  color: #f07c09;
 }

@@ -7,7 +7,28 @@ export type Branch={
     logo:string,
     url:string,
     element:ReactElement,
-    images:ImageType[]
+    images:ImageType[],
+    contacts:{
+        phone:string,
+        address:string,
+        link?:string
+    },
+    workSchedule:{
+      monday:string,
+      tuesday:string,
+      wednesday:string,
+      thursday:string,
+      friday:string,
+      saturday:string,
+      sunday:string
+    },
+    priceList:priceListType[],
+}
+
+export type priceListType={
+    service:string,
+    price:string,
+    type:"Мужская"|"Женская"
 }
 export type ImageType={
     src:string,

@@ -1,6 +1,18 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
 import { authApi, type LoginRequest, type RegisterRequest } from '../../api/authApi'
 import type { User } from '../../interface/interface'
+import { tokenStorage } from '../token/tokenStorage'
+
+function mapUser(u: { username: string; full_name: string; phone_number: string; is_verified: boolean; created_at: string; updated_at: string }): User {
+  return {
+    username: u.username,
+    fullName: u.full_name,
+    phoneNumber: u.phone_number,
+    isVerified: u.is_verified,
+    createdAt: u.created_at,
+    updatedAt: u.updated_at,
+  }
+}
 
 interface UserState {
   user: User | null;
@@ -11,7 +23,7 @@ interface UserState {
 
 const initialState: UserState = {
   user: null,
-  token: localStorage.getItem('token'),
+  token: tokenStorage.getAccessToken(),
   loading: false,
   error: null,
 }
@@ -21,8 +33,8 @@ export const registerUser = createAsyncThunk(
   async (data: RegisterRequest, { rejectWithValue }) => {
     try {
       const response = await authApi.register(data)
-      localStorage.setItem('token', response.token)
-      return response
+      tokenStorage.setTokens(response.access_token, response.refresh_token)
+      return { token: response.access_token, user: mapUser(response.user) }
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Ошибка регистрации')
     }
@@ -34,8 +46,8 @@ export const loginUser = createAsyncThunk(
   async (data: LoginRequest, { rejectWithValue }) => {
     try {
       const response = await authApi.login(data)
-      localStorage.setItem('token', response.token)
-      return response
+      tokenStorage.setTokens(response.access_token, response.refresh_token)
+      return { token: response.access_token, user: mapUser(response.user) }
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Ошибка авторизации')
     }
@@ -46,9 +58,10 @@ export const fetchCurrentUser = createAsyncThunk(
   'user/fetchCurrentUser',
   async (_, { rejectWithValue }) => {
     try {
-      return await authApi.getMe()
+      const response = await authApi.getMe()
+      return mapUser(response.user)
     } catch (error) {
-      localStorage.removeItem('token')
+      tokenStorage.clearTokens()
       return rejectWithValue(error instanceof Error ? error.message : 'Ошибка получения пользователя')
     }
   }
@@ -62,7 +75,7 @@ const userSlice = createSlice({
       state.user = null
       state.token = null
       state.error = null
-      localStorage.removeItem('token')
+      tokenStorage.clearTokens()
     },
     clearError(state) {
       state.error = null

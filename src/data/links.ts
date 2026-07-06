@@ -1,7 +1,7 @@
 export const redFoxLinks=[
     {
         name:'Контакты',
-        url:'/redFoxContancts'
+        url:'#'
     },
     {
         name:'Услуги',
@@ -11,20 +11,12 @@ export const redFoxLinks=[
         name:'Записи',
         url:'/redFoxReserve'
     },
-    {
-        name:'Авторизация',
-        url:'/auth'
-    },
-    {
-        name:'Регистрация',
-        url:'/registration'
-    }
 ]
 
 export const barbershopLinks=[
     {
         name:'Контакты',
-        url:'/barbershopContacts'
+        url:'#'
     },
     {
         name:'Услуги',
@@ -34,12 +26,4 @@ export const barbershopLinks=[
         name:'Записи',
         url:'/barbershopServices'
     },
-    {
-        name:'Авторизация',
-        url:'/auth'
-    },
-    {
-        name:'Регистрация',
-        url:'/registration'
-    }
 ]

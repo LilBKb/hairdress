@@ -59,20 +59,26 @@
   text-align: center;
 }
 
+.actions {
+  display: flex;
+  gap: 12px;
+  position: relative;
+  z-index: 2;
+}
+
 .button {
-  padding: 12px 32px;
+  padding: 12px 24px;
   border: 2px solid rgba(255, 255, 255, 0.6);
   border-radius: 100px;
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(8px);
   color: #fff;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  position: relative;
-  z-index: 2;
   transition: all 0.3s ease;
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .button:hover {
