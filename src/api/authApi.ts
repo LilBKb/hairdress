@@ -6,19 +6,21 @@ export interface User {
   username: string;
   full_name: string;
   phone_number: string;
+  email: string;
+  role: string;
   is_verified: boolean;
   created_at: string;
   updated_at: string;
 }
 
 export interface LoginRequest {
-  username: string;
-  password: string;
+  username?: string;
+  phone_number?: string;
+  email?: string;
 }
 
 export interface RegisterRequest {
   username: string;
-  password: string;
   full_name: string;
   phone_number: string;
 }
@@ -31,6 +33,7 @@ export interface AuthResponse {
   access_token: string;
   refresh_token: string;
   user: User;
+  operation_id?: string;
 }
 
 export interface RequestEmailVerificationRequest {
@@ -39,8 +42,8 @@ export interface RequestEmailVerificationRequest {
 }
 
 export interface ApproveCodeRequest {
-  email?: string;
   phone_number?: string;
+  email?: string;
   code: string;
   operation_id: string;
 }
@@ -48,7 +51,6 @@ export interface ApproveCodeRequest {
 export interface VerifyEmailResponse {
   access_token: string;
   refresh_token: string;
-  success: boolean;
 }
 
 export const authApi = {
