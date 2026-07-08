@@ -1,65 +1,88 @@
 import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { loginUser, clearError } from "../../store/slices/userSlice";
+import { requestLoginCode, loginWithCode, clearError } from "../../store/slices/userSlice";
 import { Link, Navigate } from "react-router-dom";
 import BackButton from "../../components/BackButton/BackButton";
+import ModalCode from "../../components/ModalCode/ModalCode";
 import styles from "./styles.module.css";
 
 const AuthPage = () => {
   const dispatch = useAppDispatch();
   const { token, loading, error } = useAppSelector((state) => state.user);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+
+  const [contact, setContact] = useState("");
+  const [operationId, setOperationId] = useState<string | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
+  const [codeModalOpen, setCodeModalOpen] = useState(false);
 
   if (token) {
     return <Navigate to="/" replace />;
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    dispatch(loginUser({ username, password }));
+  const isEmail = contact.includes("@");
+
+  const handleSendCode = async () => {
+    if (!contact.trim()) {
+      setLocalError("Введите email или номер телефона");
+      return;
+    }
+    setLocalError(null);
+    const data = isEmail ? { email: contact } : { phone_number: contact };
+    const result = await dispatch(requestLoginCode(data));
+    if (requestLoginCode.fulfilled.match(result)) {
+      setOperationId(result.payload.operation_id);
+      setCodeModalOpen(true);
+    }
+  };
+
+  const handleConfirmCode = async (code: string) => {
+    if (!operationId) return;
+    const data = isEmail
+      ? { email: contact, code, operation_id: operationId }
+      : { phone_number: contact, code, operation_id: operationId };
+    const result = await dispatch(loginWithCode(data));
+    if (loginWithCode.fulfilled.match(result)) {
+      setCodeModalOpen(false);
+    }
   };
 
   return (
     <div className={styles.page}>
       <BackButton />
       <div className={styles.container}>
-        <h1 className={styles.title}>Авторизация</h1>
-        <p className={styles.subtitle}>Войдите в свой аккаунт</p>
-        <form onSubmit={handleSubmit} className={styles.form}>
+        <h1 className={styles.title}>Вход</h1>
+        <p className={styles.subtitle}>Войдите по коду из email или SMS</p>
+        <div className={styles.form}>
           <div className={styles.field}>
-            <label className={styles.label}>Имя пользователя</label>
+            <label className={styles.label}>Email или телефон</label>
             <input
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              onFocus={() => dispatch(clearError())}
+              value={contact}
+              onChange={(e) => setContact(e.target.value)}
+              onFocus={() => { dispatch(clearError()); setLocalError(null); }}
               required
               className={styles.input}
-              placeholder="Введите имя"
+              placeholder="example@mail.com / +7 (999) 123-45-67"
             />
           </div>
-          <div className={styles.field}>
-            <label className={styles.label}>Пароль</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onFocus={() => dispatch(clearError())}
-              required
-              className={styles.input}
-              placeholder="Введите пароль"
-            />
-          </div>
-          {error && <p className={styles.error}>{error}</p>}
-          <button type="submit" disabled={loading} className={styles.button}>
-            {loading ? "Загрузка..." : "Войти"}
+          {(error || localError) && <p className={styles.error}>{localError || error}</p>}
+          <button onClick={handleSendCode} disabled={loading} className={styles.button}>
+            {loading ? "Отправка..." : "Получить код"}
           </button>
-        </form>
+        </div>
         <p className={styles.link}>
           Нет аккаунта? <Link to="/registration">Зарегистрироваться</Link>
         </p>
       </div>
+
+      <ModalCode
+        isOpen={codeModalOpen}
+        onClose={() => setCodeModalOpen(false)}
+        contact={contact}
+        loading={loading}
+        error={error}
+        onConfirm={handleConfirmCode}
+      />
     </div>
   );
 };

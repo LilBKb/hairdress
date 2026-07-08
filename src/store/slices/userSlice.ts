@@ -1,13 +1,15 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
-import { authApi, type LoginRequest, type RegisterRequest } from '../../api/authApi'
+import { authApi, type RequestCodeRequest, type LoginWithCodeRequest } from '../../api/authApi'
 import type { User } from '../../interface/interface'
 import { tokenStorage } from '../token/tokenStorage'
 
-function mapUser(u: { username: string; full_name: string; phone_number: string; is_verified: boolean; created_at: string; updated_at: string }): User {
+function mapUser(u: { username: string; full_name: string; phone_number: string; email: string; role: string; is_verified: boolean; created_at: string; updated_at: string }): User {
   return {
     username: u.username,
     fullName: u.full_name,
     phoneNumber: u.phone_number,
+    email: u.email,
+    role: u.role,
     isVerified: u.is_verified,
     createdAt: u.created_at,
     updatedAt: u.updated_at,
@@ -28,28 +30,27 @@ const initialState: UserState = {
   error: null,
 }
 
-export const registerUser = createAsyncThunk(
-  'user/register',
-  async (data: RegisterRequest, { rejectWithValue }) => {
+export const requestLoginCode = createAsyncThunk(
+  'user/requestCode',
+  async (data: RequestCodeRequest, { rejectWithValue }) => {
     try {
-      const response = await authApi.register(data)
-      tokenStorage.setTokens(response.access_token, response.refresh_token)
-      return { token: response.access_token, user: mapUser(response.user) }
+      const response = await authApi.requestCode(data)
+      return { operation_id: response.operation_id }
     } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Ошибка регистрации')
+      return rejectWithValue(error instanceof Error ? error.message : 'Ошибка отправки кода')
     }
   }
 )
 
-export const loginUser = createAsyncThunk(
-  'user/login',
-  async (data: LoginRequest, { rejectWithValue }) => {
+export const loginWithCode = createAsyncThunk(
+  'user/loginWithCode',
+  async (data: LoginWithCodeRequest, { rejectWithValue }) => {
     try {
-      const response = await authApi.login(data)
+      const response = await authApi.loginWithCode(data)
       tokenStorage.setTokens(response.access_token, response.refresh_token)
       return { token: response.access_token, user: mapUser(response.user) }
     } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Ошибка авторизации')
+      return rejectWithValue(error instanceof Error ? error.message : 'Ошибка входа')
     }
   }
 )
@@ -83,29 +84,27 @@ const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(registerUser.pending, (state) => {
+      .addCase(requestLoginCode.pending, (state) => {
         state.loading = true
         state.error = null
       })
-      .addCase(registerUser.fulfilled, (state, action: PayloadAction<{ token: string; user: User }>) => {
+      .addCase(requestLoginCode.fulfilled, (state) => {
         state.loading = false
-        state.token = action.payload.token
-        state.user = action.payload.user
       })
-      .addCase(registerUser.rejected, (state, action) => {
+      .addCase(requestLoginCode.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })
-      .addCase(loginUser.pending, (state) => {
+      .addCase(loginWithCode.pending, (state) => {
         state.loading = true
         state.error = null
       })
-      .addCase(loginUser.fulfilled, (state, action: PayloadAction<{ token: string; user: User }>) => {
+      .addCase(loginWithCode.fulfilled, (state, action: PayloadAction<{ token: string; user: User }>) => {
         state.loading = false
         state.token = action.payload.token
         state.user = action.payload.user
       })
-      .addCase(loginUser.rejected, (state, action) => {
+      .addCase(loginWithCode.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })

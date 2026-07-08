@@ -31,7 +31,7 @@ function onTokenRefreshed(token: string) {
 	refreshSubscribers = [];
 }
 
-const SKIP_REFRESH_ENDPOINTS = ['/api/v1/auth/login', '/api/v1/auth/refresh', '/api/v1/auth/register'];
+const SKIP_REFRESH_ENDPOINTS = ['/api/v1/auth/login-with-code', '/api/v1/auth/refresh'];
 
 apiClient.interceptors.response.use(
 	(response) => response,

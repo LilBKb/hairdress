@@ -44,6 +44,8 @@ export interface User {
   username: string;
   fullName: string;
   phoneNumber: string;
+  email: string;
+  role: string;
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;
