@@ -30,6 +30,13 @@ const initialState: UserState = {
   error: null,
 }
 
+function isTimeoutError(error: unknown): boolean {
+  if (error && typeof error === 'object' && 'code' in error) {
+    return (error as { code: string }).code === 'ECONNABORTED'
+  }
+  return error instanceof Error && error.message === 'Network Error'
+}
+
 export const loginUser = createAsyncThunk(
   'user/login',
   async (data: LoginRequest, { rejectWithValue }) => {
@@ -44,6 +51,9 @@ export const loginUser = createAsyncThunk(
         operation_id: response.operation_id || null,
       }
     } catch (error) {
+      if (isTimeoutError(error)) {
+        return rejectWithValue('Превышено время ожидания. Проверьте подключение к интернету.')
+      }
       return rejectWithValue(error instanceof Error ? error.message : 'Ошибка входа')
     }
   }
@@ -63,6 +73,9 @@ export const registerUser = createAsyncThunk(
         operation_id: response.operation_id || null,
       }
     } catch (error) {
+      if (isTimeoutError(error)) {
+        return rejectWithValue('Превышено время ожидания. Проверьте подключение к интернету.')
+      }
       return rejectWithValue(error instanceof Error ? error.message : 'Ошибка регистрации')
     }
   }
@@ -75,6 +88,9 @@ export const requestEmailCode = createAsyncThunk(
       const response = await authApi.requestEmailVerification({ email })
       return { operation_id: response.operation_id }
     } catch (error) {
+      if (isTimeoutError(error)) {
+        return rejectWithValue('Превышено время ожидания. Проверьте подключение к интернету.')
+      }
       return rejectWithValue(error instanceof Error ? error.message : 'Ошибка отправки кода')
     }
   }
@@ -87,6 +103,9 @@ export const approveCode = createAsyncThunk(
       const response = await authApi.approveCode(data)
       return { token: response.token }
     } catch (error) {
+      if (isTimeoutError(error)) {
+        return rejectWithValue('Превышено время ожидания. Проверьте подключение к интернету.')
+      }
       return rejectWithValue(error instanceof Error ? error.message : 'Неверный код')
     }
   }
@@ -100,6 +119,9 @@ export const verifyEmail = createAsyncThunk(
       tokenStorage.setTokens(response.access_token, response.refresh_token)
       return { token: response.access_token }
     } catch (error) {
+      if (isTimeoutError(error)) {
+        return rejectWithValue('Превышено время ожидания. Проверьте подключение к интернету.')
+      }
       return rejectWithValue(error instanceof Error ? error.message : 'Ошибка верификации')
     }
   }
@@ -113,6 +135,9 @@ export const fetchCurrentUser = createAsyncThunk(
       return mapUser(response.user)
     } catch (error) {
       tokenStorage.clearTokens()
+      if (isTimeoutError(error)) {
+        return rejectWithValue('Превышено время ожидания. Проверьте подключение к интернету.')
+      }
       return rejectWithValue(error instanceof Error ? error.message : 'Ошибка получения пользователя')
     }
   }
