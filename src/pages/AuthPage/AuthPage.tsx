@@ -38,7 +38,12 @@ const AuthPage = () => {
         setCodeModalOpen(true);
       }
     } else {
-      setLocalError("Пользователь не найден");
+      const errorMsg = typeof result.payload === 'string' ? result.payload : null;
+      if (errorMsg && errorMsg.includes('времени ожидания')) {
+        setLocalError(errorMsg);
+      } else {
+        setLocalError("Пользователь не найден");
+      }
     }
   };
 
