@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { requestLoginCode, loginWithCode, clearError } from "../../store/slices/userSlice";
+import { loginUser, approveCode, verifyEmail, clearError } from "../../store/slices/userSlice";
 import { Link, Navigate } from "react-router-dom";
 import BackButton from "../../components/BackButton/BackButton";
 import ModalCode from "../../components/ModalCode/ModalCode";
@@ -27,21 +27,33 @@ const AuthPage = () => {
       return;
     }
     setLocalError(null);
+    dispatch(clearError());
+
     const data = isEmail ? { email: contact } : { phone_number: contact };
-    const result = await dispatch(requestLoginCode(data));
-    if (requestLoginCode.fulfilled.match(result)) {
-      setOperationId(result.payload.operation_id);
-      setCodeModalOpen(true);
+    const result = await dispatch(loginUser(data));
+
+    if (loginUser.fulfilled.match(result)) {
+      if (result.payload.operation_id) {
+        setOperationId(result.payload.operation_id);
+        setCodeModalOpen(true);
+      }
+    } else {
+      setLocalError("Пользователь не найден");
     }
   };
 
   const handleConfirmCode = async (code: string) => {
     if (!operationId) return;
+
     const data = isEmail
       ? { email: contact, code, operation_id: operationId }
       : { phone_number: contact, code, operation_id: operationId };
-    const result = await dispatch(loginWithCode(data));
-    if (loginWithCode.fulfilled.match(result)) {
+
+    const approved = await dispatch(approveCode(data));
+    if (!approveCode.fulfilled.match(approved)) return;
+
+    const verified = await dispatch(verifyEmail(approved.payload.token));
+    if (verifyEmail.fulfilled.match(verified)) {
       setCodeModalOpen(false);
     }
   };

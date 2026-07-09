@@ -18,7 +18,6 @@ apiClient.interceptors.request.use((config) => {
 	return config;
 });
 
-// 401 -> refresh -> retry
 let isRefreshing = false;
 let refreshSubscribers: ((token: string) => void)[] = [];
 
@@ -31,15 +30,17 @@ function onTokenRefreshed(token: string) {
 	refreshSubscribers = [];
 }
 
-const SKIP_REFRESH_ENDPOINTS = ['/api/v1/auth/login-with-code', '/api/v1/auth/refresh'];
+const SKIP_REFRESH_ENDPOINTS = ['/api/v1/auth/login', '/api/v1/auth/refresh', '/api/v1/auth/register'];
 
 apiClient.interceptors.response.use(
 	(response) => response,
 	async (error: AxiosError) => {
-		const originalRequest = error.config as typeof error.config & { _retry?: boolean };
+		const originalRequest = error.config;
+		if (!originalRequest) return Promise.reject(error);
+
 		const url = originalRequest.url || '';
 
-		if (error.response?.status === 401 && !originalRequest._retry && !SKIP_REFRESH_ENDPOINTS.some(u => url.includes(u))) {
+		if (error.response?.status === 401 && !(originalRequest as unknown as Record<string, unknown>)._retry && !SKIP_REFRESH_ENDPOINTS.some(u => url.includes(u))) {
 			if (isRefreshing) {
 				return new Promise((resolve) => {
 					subscribeTokenRefresh((token: string) => {
@@ -49,7 +50,7 @@ apiClient.interceptors.response.use(
 				});
 			}
 
-			originalRequest._retry = true;
+			(originalRequest as unknown as Record<string, unknown>)._retry = true;
 			isRefreshing = true;
 
 			const refreshTokenSnapshot = tokenStorage.getRefreshToken();	
@@ -62,7 +63,7 @@ apiClient.interceptors.response.use(
 				tokenStorage.setTokens(data.access_token, data.refresh_token);
 				onTokenRefreshed(data.access_token);
 				originalRequest.headers!.Authorization = `Bearer ${data.access_token}`;
-				return apiClient(originalRequest!);
+				return apiClient(originalRequest);
 			} catch {
 				const currentRefreshToken = tokenStorage.getRefreshToken();
 				if (currentRefreshToken === refreshTokenSnapshot) {
@@ -79,17 +80,11 @@ apiClient.interceptors.response.use(
 	}
 );
 
-// ─── GET request deduplication ────────────────────────────────────────────────
-// If the exact same GET request (URL + serialised params) is already in-flight,
-// return the existing promise instead of opening a second network connection.
-//
-// This makes React StrictMode's intentional double-firing of useEffect harmless
-// for every component in the app without any per-component boilerplate.
 {
   const pending = new Map<string, Promise<AxiosResponse>>();
   const _get = apiClient.get.bind(apiClient);
 
-  apiClient.get = (url: string, config?: AxiosRequestConfig) => {
+  apiClient.get = ((url: string, config?: AxiosRequestConfig) => {
     const key = config?.params
       ? `${url}\0${JSON.stringify(config.params)}`
       : url;
@@ -100,5 +95,5 @@ apiClient.interceptors.response.use(
     const req = _get(url, config).finally(() => pending.delete(key));
     pending.set(key, req);
     return req;
-  };
+  }) as typeof apiClient.get;
 }

@@ -95,7 +95,6 @@ export const branches: Branch[] = [
         type: "Мужская",
       },
 
-      // Женские услуги
       {
         service: "Модельная стрижка",
         price: "650–850 ₽",
@@ -241,7 +240,6 @@ export const branches: Branch[] = [
         type: "Мужская",
       },
 
-      // Женские услуги
       {
         service: "Модельная стрижка",
         price: "650–850 ₽",

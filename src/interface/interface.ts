@@ -60,7 +60,7 @@ export interface Admin {
 }
 
 export interface Hairdresser {
-  id: string; // uuid
+  id: string;
   username: string;
   isActive: boolean;
   createdAt: string;

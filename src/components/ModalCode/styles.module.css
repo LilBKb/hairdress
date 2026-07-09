@@ -138,3 +138,24 @@
   border-radius: 10px;
   margin: 0 0 16px;
 }
+
+@media (max-width: 480px) {
+  .modal {
+    padding: 24px 20px;
+  }
+  .title {
+    font-size: 20px;
+  }
+  .subtitle {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  .input {
+    padding: 10px 14px;
+    font-size: 18px;
+  }
+  .button {
+    padding: 12px;
+    font-size: 15px;
+  }
+}

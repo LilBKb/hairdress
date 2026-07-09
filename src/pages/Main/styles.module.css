@@ -41,3 +41,16 @@
   width: 100%;
   max-width: 800px;
 }
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 24px 16px;
+  }
+  .subtitle {
+    margin-bottom: 32px;
+  }
+  .grid {
+    gap: 20px;
+    grid-template-columns: 1fr;
+  }
+}

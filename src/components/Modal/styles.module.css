@@ -53,3 +53,9 @@
 .close:hover {
   background: var(--border);
 }
+
+@media (max-width: 480px) {
+  .modal {
+    padding: 24px 20px;
+  }
+}

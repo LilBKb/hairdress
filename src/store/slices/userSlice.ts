@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
-import { authApi, type RequestCodeRequest, type LoginWithCodeRequest } from '../../api/authApi'
+import { authApi, type LoginRequest, type RegisterRequest } from '../../api/authApi'
 import type { User } from '../../interface/interface'
 import { tokenStorage } from '../token/tokenStorage'
 
@@ -30,11 +30,49 @@ const initialState: UserState = {
   error: null,
 }
 
-export const requestLoginCode = createAsyncThunk(
-  'user/requestCode',
-  async (data: RequestCodeRequest, { rejectWithValue }) => {
+export const loginUser = createAsyncThunk(
+  'user/login',
+  async (data: LoginRequest, { rejectWithValue }) => {
     try {
-      const response = await authApi.requestCode(data)
+      const response = await authApi.login(data)
+      if (response.access_token) {
+        tokenStorage.setTokens(response.access_token, response.refresh_token)
+      }
+      return {
+        token: response.access_token || null,
+        user: response.user ? mapUser(response.user) : null,
+        operation_id: response.operation_id || null,
+      }
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Ошибка входа')
+    }
+  }
+)
+
+export const registerUser = createAsyncThunk(
+  'user/register',
+  async (data: RegisterRequest, { rejectWithValue }) => {
+    try {
+      const response = await authApi.register(data)
+      if (response.access_token) {
+        tokenStorage.setTokens(response.access_token, response.refresh_token)
+      }
+      return {
+        token: response.access_token || null,
+        user: response.user ? mapUser(response.user) : null,
+        operation_id: response.operation_id || null,
+      }
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Ошибка регистрации')
+    }
+  }
+)
+
+export const requestEmailCode = createAsyncThunk(
+  'user/requestEmailCode',
+  async (email: string, { rejectWithValue }) => {
+    try {
+      const response = await authApi.requestEmailVerification({ email })
       return { operation_id: response.operation_id }
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Ошибка отправки кода')
@@ -42,15 +80,27 @@ export const requestLoginCode = createAsyncThunk(
   }
 )
 
-export const loginWithCode = createAsyncThunk(
-  'user/loginWithCode',
-  async (data: LoginWithCodeRequest, { rejectWithValue }) => {
+export const approveCode = createAsyncThunk(
+  'user/approveCode',
+  async (data: { email?: string; phone_number?: string; code: string; operation_id: string }, { rejectWithValue }) => {
     try {
-      const response = await authApi.loginWithCode(data)
-      tokenStorage.setTokens(response.access_token, response.refresh_token)
-      return { token: response.access_token, user: mapUser(response.user) }
+      const response = await authApi.approveCode(data)
+      return { token: response.token }
     } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Ошибка входа')
+      return rejectWithValue(error instanceof Error ? error.message : 'Неверный код')
+    }
+  }
+)
+
+export const verifyEmail = createAsyncThunk(
+  'user/verifyEmail',
+  async (token: string, { rejectWithValue }) => {
+    try {
+      const response = await authApi.verifyEmail(token)
+      tokenStorage.setTokens(response.access_token, response.refresh_token)
+      return { token: response.access_token }
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Ошибка верификации')
     }
   }
 )
@@ -84,27 +134,63 @@ const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(requestLoginCode.pending, (state) => {
+      .addCase(loginUser.pending, (state) => {
         state.loading = true
         state.error = null
       })
-      .addCase(requestLoginCode.fulfilled, (state) => {
+      .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false
+        state.token = action.payload.token
+        if (action.payload.user) state.user = action.payload.user
       })
-      .addCase(requestLoginCode.rejected, (state, action) => {
+      .addCase(loginUser.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })
-      .addCase(loginWithCode.pending, (state) => {
+      .addCase(registerUser.pending, (state) => {
         state.loading = true
         state.error = null
       })
-      .addCase(loginWithCode.fulfilled, (state, action: PayloadAction<{ token: string; user: User }>) => {
+      .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false
         state.token = action.payload.token
-        state.user = action.payload.user
+        if (action.payload.user) state.user = action.payload.user
       })
-      .addCase(loginWithCode.rejected, (state, action) => {
+      .addCase(registerUser.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
+      })
+      .addCase(requestEmailCode.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(requestEmailCode.fulfilled, (state) => {
+        state.loading = false
+      })
+      .addCase(requestEmailCode.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
+      })
+      .addCase(approveCode.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(approveCode.fulfilled, (state) => {
+        state.loading = false
+      })
+      .addCase(approveCode.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
+      })
+      .addCase(verifyEmail.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(verifyEmail.fulfilled, (state, action) => {
+        state.loading = false
+        state.token = action.payload.token
+      })
+      .addCase(verifyEmail.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })

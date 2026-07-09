@@ -24,3 +24,9 @@
   height: 100%;
   object-fit: cover;
 }
+
+@media (max-width: 480px) {
+  .swiper {
+    height: 300px;
+  }
+}

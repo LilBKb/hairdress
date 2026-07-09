@@ -39,3 +39,15 @@
 .backButton:hover .arrow {
   transform: translateX(-2px);
 }
+
+@media (max-width: 480px) {
+  .backButton {
+    padding: 8px 14px;
+    font-size: 12px;
+    top: 12px;
+    left: 12px;
+  }
+  .arrow {
+    font-size: 15px;
+  }
+}
