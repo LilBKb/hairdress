@@ -75,7 +75,7 @@ export const authApi = {
   },
 
   verifyEmail: async (token: string): Promise<VerifyEmailResponse> => {
-    const res = await apiClient.post(authApiPath+'verify-email', { token })
+    const res = await apiClient.post(authApiPath+'email/verify', { token })
     return res.data;
   },
 
