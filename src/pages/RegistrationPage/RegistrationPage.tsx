@@ -1,20 +1,17 @@
-import { useState } from "react";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { registerUser, requestEmailCode, approveCode, verifyEmail, clearError } from "../../store/slices/userSlice";
-import { Link, Navigate, useNavigate } from "react-router-dom";
-import BackButton from "../../components/BackButton/BackButton";
-import ModalCode from "../../components/ModalCode/ModalCode";
-import styles from "./styles.module.css";
-
-type ContactType = "email" | "phone";
+import { useState } from "react"
+import { Link, Navigate } from "react-router-dom"
+import BackButton from "../../components/BackButton/BackButton"
+import ModalCode from "../../components/ModalCode/ModalCode"
+import { useAppDispatch, useAppSelector } from "../../store/hooks"
+import { approveCode, clearError, loginEmail, registerUser, requestEmailCode } from "../../store/slices/userSlice"
+import styles from "./styles.module.css"
 
 const RegistrationPage = () => {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
   const { token, loading, error } = useAppSelector((state) => state.user);
 
-  const [contactType, setContactType] = useState<ContactType>("email");
-  const [contactValue, setContactValue] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [fullName, setFullName] = useState("");
   const [operationId, setOperationId] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -25,8 +22,12 @@ const RegistrationPage = () => {
   }
 
   const handleRegister = async () => {
-    if (!contactValue.trim()) {
-      setLocalError(contactType === "email" ? "Введите email" : "Введите номер телефона");
+    if (!email.trim()) {
+      setLocalError("Введите email");
+      return;
+    }
+    if (!phoneNumber.trim()) {
+      setLocalError("Введите номер телефона");
       return;
     }
     if (!fullName.trim()) {
@@ -36,41 +37,47 @@ const RegistrationPage = () => {
     setLocalError(null);
     dispatch(clearError());
 
-    const username = contactType === "email"
-      ? contactValue.split("@")[0]
-      : fullName.replace(/\s+/g, "_");
+    const username = email.split("@")[0];
 
     const result = await dispatch(registerUser({
       username,
-      full_name: fullName,
-      phone_number: contactType === "phone" ? contactValue : "",
+      email,
+      phone_number: phoneNumber,
     }));
 
     if (registerUser.fulfilled.match(result)) {
-      if (contactType === "email") {
-        if (result.payload.operation_id) {
-          setOperationId(result.payload.operation_id);
+      if (result.payload.operation_id) {
+        setOperationId(result.payload.operation_id);
+      } else {
+        const codeRes = await dispatch(requestEmailCode(email));
+        if (requestEmailCode.fulfilled.match(codeRes)) {
+          setOperationId(codeRes.payload.operation_id);
         } else {
-          const codeRes = await dispatch(requestEmailCode(contactValue));
-          if (requestEmailCode.fulfilled.match(codeRes)) {
-            setOperationId(codeRes.payload.operation_id);
+          if (requestEmailCode.rejected.match(codeRes)) {
+            const errorMsg = typeof codeRes.payload === 'string' ? codeRes.payload : null;
+            if (errorMsg) setLocalError(errorMsg);
           }
         }
-        setCodeModalOpen(true);
-      } else {
-        navigate("/");
+      }
+      setCodeModalOpen(true);
+    } else {
+      if (registerUser.rejected.match(result)) {
+        const errorMsg = typeof result.payload === 'string' ? result.payload : null;
+        if (errorMsg) setLocalError(errorMsg);
       }
     }
   };
 
   const handleConfirmCode = async (code: string) => {
-    if (!operationId || contactType !== "email") return;
+    if (!operationId) return;
 
-    const approved = await dispatch(approveCode({ email: contactValue, code, operation_id: operationId }));
+    const approved = await dispatch(approveCode({ email, code, operation_id: operationId }));
     if (!approveCode.fulfilled.match(approved)) return;
 
-    const verified = await dispatch(verifyEmail(approved.payload.token));
-    if (verifyEmail.fulfilled.match(verified)) {
+    console.log("token", approved.payload.token);
+
+    const verified = await dispatch(loginEmail(approved.payload.token ?? ""));
+    if (loginEmail.fulfilled.match(verified)) {
       setCodeModalOpen(false);
     }
   };
@@ -81,21 +88,6 @@ const RegistrationPage = () => {
       <div className={styles.container}>
         <h1 className={styles.title}>Регистрация</h1>
         <p className={styles.subtitle}>Создайте аккаунт по коду из email или SMS</p>
-
-        <div className={styles.tabs}>
-          <button
-            className={`${styles.tab} ${contactType === "email" ? styles.tabActive : ""}`}
-            onClick={() => setContactType("email")}
-          >
-            Email
-          </button>
-          <button
-            className={`${styles.tab} ${contactType === "phone" ? styles.tabActive : ""}`}
-            onClick={() => setContactType("phone")}
-          >
-            Телефон
-          </button>
-        </div>
 
         <div className={styles.form}>
           <div className={styles.field}>
@@ -111,15 +103,27 @@ const RegistrationPage = () => {
             />
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>{contactType === "email" ? "Email" : "Номер телефона"}</label>
+            <label className={styles.label}>Email</label>
             <input
-              type={contactType === "email" ? "email" : "tel"}
-              value={contactValue}
-              onChange={(e) => setContactValue(e.target.value)}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               onFocus={() => { dispatch(clearError()); setLocalError(null); }}
               required
               className={styles.input}
-              placeholder={contactType === "email" ? "example@mail.com" : "+7 (999) 123-45-67"}
+              placeholder="example@mail.com"
+            />
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label}>Номер телефона</label>
+            <input
+              type="tel"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              onFocus={() => { dispatch(clearError()); setLocalError(null); }}
+              required
+              className={styles.input}
+              placeholder="+7 (999) 123-45-67"
             />
           </div>
           {(error || localError) && <p className={styles.error}>{localError || error}</p>}
@@ -135,7 +139,7 @@ const RegistrationPage = () => {
       <ModalCode
         isOpen={codeModalOpen}
         onClose={() => setCodeModalOpen(false)}
-        contact={contactValue}
+        contact={email}
         loading={loading}
         error={error}
         onConfirm={handleConfirmCode}
