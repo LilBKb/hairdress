@@ -14,9 +14,9 @@ const domainMessages: Record<string, string> = {
   'invalid code': 'Неверный код',
   'code expired': 'Код истёк, запросите новый',
   'too many attempts': 'Слишком много попыток',
-  'sms rate limited': 'Слишком много попыток, попробуйте позже',
+  'verify rate limited': 'Слишком много попыток, попробуйте позже',
   'session is blocked': 'Сессия заблокирована',
-  'sms cooldown': 'Подождите перед повторной отправкой',
+  'verify cooldown': 'Подождите перед повторной отправкой',
   'invalid token': 'Недействительный токен',
   'user not verified': 'Пользователь не верифицирован',
   'redis not found': 'Код не найден или истёк',
@@ -27,7 +27,8 @@ const domainMessages: Record<string, string> = {
   'refresh token is expired': 'Сессия истекла, войдите снова',
   'device mistake': 'Ошибка устройства',
   'invalid request method': 'Некорректный запрос',
-  'daily limits exceeded': 'Превышен дневной лимит',
+  'out of daily limits': 'Превышен дневной лимит',
+  'out of daily limits for ip address': 'Превышен дневной лимит',
   'internal server error': 'Внутренняя ошибка сервера',
 }
 
@@ -41,7 +42,21 @@ function extractErrorMessage(error: unknown): string {
 }
 
 export function mapApiError(error: unknown, fallback: string): string {
-  const message = extractErrorMessage(error).trim().toLowerCase()
+  const raw = extractErrorMessage(error).trim()
+  const message = raw.toLowerCase()
+
+  if (message.includes('auth temporally blocked')) {
+    const parts = message.split(/[:.]\s*/)
+    const seconds = parts[1]
+    if (seconds) {
+      const sec = Math.ceil(Number(seconds))
+      const m = Math.floor(sec / 60)
+      const s = sec % 60
+      if (m > 0) return `Авторизация временно заблокирована. Подождите ${m} мин ${s} сек`
+      return `Авторизация временно заблокирована. Подождите ${sec} сек`
+    }
+    return 'Авторизация временно заблокирована'
+  }
 
   for (const [key, msg] of Object.entries(domainMessages)) {
     if (message.includes(key)) return msg
