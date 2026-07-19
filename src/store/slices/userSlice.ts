@@ -1,4 +1,5 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { AxiosError } from 'axios'
 import { authApi, type LoginRequest, type RegisterRequest } from '../../api/authApi'
 import { mapApiError } from '../../api/errorMapper'
 import type { User } from '../../interface/interface'
@@ -86,6 +87,7 @@ export const approveCode = createAsyncThunk(
   async (data: { email?: string; phone_number?: string; code: string; operation_id: string }, { rejectWithValue }) => {
     try {
       const response = await authApi.approveCode(data)
+      console.log("approveCode response", response)
       return { token: response.token }
     } catch (error) {
       return rejectWithValue(mapApiError(error, 'Неверный код'))
@@ -93,13 +95,14 @@ export const approveCode = createAsyncThunk(
   }
 )
 
-export const verifyEmail = createAsyncThunk(
-  'user/verifyEmail',
+export const loginEmail = createAsyncThunk(
+  'user/loginEmail',
   async (token: string, { rejectWithValue }) => {
+    console.log("token here", token)
     try {
-      const response = await authApi.verifyEmail(token)
+      const response = await authApi.loginEmail(token)
       tokenStorage.setTokens(response.access_token, response.refresh_token)
-      return { token: response.access_token }
+      return { token: response.access_token, user: response.user ? mapUser(response.user) : null }
     } catch (error) {
       return rejectWithValue(mapApiError(error, 'Ошибка верификации'))
     }
@@ -113,8 +116,10 @@ export const fetchCurrentUser = createAsyncThunk(
       const response = await authApi.getMe()
       return mapUser(response.user)
     } catch (error) {
-      tokenStorage.clearTokens()
-      return rejectWithValue(mapApiError(error, 'Ошибка получения пользователя'))
+      if ((error as AxiosError)?.response?.status === 401) {
+        tokenStorage.clearTokens()
+      }
+      return rejectWithValue(mapApiError(error, 'Пользователь не найден'))
     }
   }
 )
@@ -183,15 +188,16 @@ const userSlice = createSlice({
         state.loading = false
         state.error = action.payload as string
       })
-      .addCase(verifyEmail.pending, (state) => {
+      .addCase(loginEmail.pending, (state) => {
         state.loading = true
         state.error = null
       })
-      .addCase(verifyEmail.fulfilled, (state, action) => {
+      .addCase(loginEmail.fulfilled, (state, action) => {
         state.loading = false
         state.token = action.payload.token
+        if (action.payload.user) state.user = action.payload.user
       })
-      .addCase(verifyEmail.rejected, (state, action) => {
+      .addCase(loginEmail.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })
