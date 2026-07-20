@@ -1,0 +1,375 @@
+.page {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.content {
+  flex: 1;
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+}
+
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 24px;
+}
+
+.tab {
+  flex: 1;
+  padding: 14px 20px;
+  border: none;
+  background: none;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.activeTab {
+  color: var(--text);
+}
+
+.success {
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 16px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.error {
+  font-size: 14px;
+  color: #dc2626;
+  text-align: center;
+  padding: 10px 16px;
+  background: #fef2f2;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+/* ─── Form ─── */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.steps {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.step {
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 100px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.step:hover {
+  background: var(--border);
+}
+
+.activeStep {
+  font-weight: 700;
+}
+
+.completedStep {
+  color: var(--barber);
+}
+
+/* ─── Not logged in ─── */
+
+.notLoggedIn {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.notLoggedIn h2 {
+  font-family: "Montserrat", sans-serif;
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.notLoggedIn p {
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
+/* ─── Confirm step ─── */
+
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.confirmTitle {
+  font-family: "Montserrat", sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.confirmDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+}
+
+.confirmRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+}
+
+.confirmLabel {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  font-size: 15px;
+  background: var(--surface);
+  transition: border-color 0.2s ease;
+  color: var(--text);
+  resize: vertical;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--fox);
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.submitBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ─── Navigation buttons ─── */
+
+.navButtons {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.backBtn {
+  padding: 12px 24px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  color: var(--text);
+}
+
+.backBtn:hover {
+  border-color: var(--text-secondary);
+}
+
+.nextBtn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  background: var(--fox);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  margin-left: auto;
+}
+
+.nextBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(240, 124, 9, 0.3);
+}
+
+.nextBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ─── My bookings ─── */
+
+.myBookings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.loadingText,
+.emptyText {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 15px;
+  padding: 40px 20px;
+}
+
+.bookingList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bookingCard {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bookingHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bookingStatus {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bookingBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bookingService {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.bookingDate {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.bookingDesc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 4px 0 0;
+}
+
+.cancelBtn {
+  align-self: flex-start;
+  padding: 8px 16px;
+  border: 1.5px solid #dc2626;
+  border-radius: 8px;
+  background: none;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.cancelBtn:hover {
+  background: #fef2f2;
+}
+
+@media (max-width: 480px) {
+  .content {
+    padding: 16px 16px 32px;
+  }
+
+  .steps {
+    gap: 2px;
+  }
+
+  .step {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}

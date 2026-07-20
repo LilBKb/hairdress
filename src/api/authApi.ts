@@ -21,8 +21,8 @@ export interface LoginRequest {
 
 export interface RegisterRequest {
   username: string;
-  full_name: string;
   phone_number: string;
+  email: string;
 }
 
 export interface AuthResponse {
@@ -48,9 +48,10 @@ export interface ApproveCodeRequest {
   operation_id: string;
 }
 
-export interface VerifyEmailResponse {
+export interface LoginEmailResponse {
   access_token: string;
   refresh_token: string;
+  user: User;
 }
 
 export const authApi = {
@@ -74,12 +75,12 @@ export const authApi = {
     return res.data;
   },
 
-  verifyEmail: async (token: string): Promise<VerifyEmailResponse> => {
-    const res = await apiClient.post(authApiPath+'verify-email', { token })
+  loginEmail: async (token: string): Promise<LoginEmailResponse> => {
+    const res = await apiClient.post(authApiPath+'login/verify', { verify_token: token })
     return res.data;
   },
 
-  approveCode: async (data: ApproveCodeRequest): Promise<{ token: string }> => {
+  approveCode: async (data: ApproveCodeRequest): Promise<{ token?: string }> => {
     const res = await apiClient.post(authApiPath+'approve-code', data)
     return res.data;
   },

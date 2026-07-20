@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { loginUser, approveCode, verifyEmail, clearError } from "../../store/slices/userSlice";
-import { Link, Navigate } from "react-router-dom";
-import BackButton from "../../components/BackButton/BackButton";
-import ModalCode from "../../components/ModalCode/ModalCode";
-import styles from "./styles.module.css";
+import { useState } from "react"
+import { Link, Navigate } from "react-router-dom"
+import BackButton from "../../components/BackButton/BackButton"
+import ModalCode from "../../components/ModalCode/ModalCode"
+import { useAppDispatch, useAppSelector } from "../../store/hooks"
+import { approveCode, clearError, loginEmail, loginUser } from "../../store/slices/userSlice"
+import styles from "./styles.module.css"
 
 const AuthPage = () => {
   const dispatch = useAppDispatch();
@@ -38,11 +38,9 @@ const AuthPage = () => {
         setCodeModalOpen(true);
       }
     } else {
-      const errorMsg = typeof result.payload === 'string' ? result.payload : null;
-      if (errorMsg && errorMsg.includes('времени ожидания')) {
-        setLocalError(errorMsg);
-      } else {
-        setLocalError("Пользователь не найден");
+      if (loginUser.rejected.match(result)) {
+        const errorMsg = typeof result.payload === 'string' ? result.payload : null;
+        if (errorMsg) setLocalError(errorMsg);
       }
     }
   };
@@ -57,8 +55,10 @@ const AuthPage = () => {
     const approved = await dispatch(approveCode(data));
     if (!approveCode.fulfilled.match(approved)) return;
 
-    const verified = await dispatch(verifyEmail(approved.payload.token));
-    if (verifyEmail.fulfilled.match(verified)) {
+    console.log("token", approved.payload.token);
+
+    const verified = await dispatch(loginEmail(approved.payload.token ?? ""));
+    if (loginEmail.fulfilled.match(verified)) {
       setCodeModalOpen(false);
     }
   };

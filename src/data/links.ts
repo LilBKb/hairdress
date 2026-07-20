@@ -20,10 +20,10 @@ export const barbershopLinks=[
     },
     {
         name:'Услуги',
-        url:'barbershopServices'
+        url:'#'
     },
     {
         name:'Записи',
-        url:'/barbershopServices'
+        url:'/barbershopReserve'
     },
 ]

@@ -1,5 +1,7 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { AxiosError } from 'axios'
 import { authApi, type LoginRequest, type RegisterRequest } from '../../api/authApi'
+import { mapApiError } from '../../api/errorMapper'
 import type { User } from '../../interface/interface'
 import { tokenStorage } from '../token/tokenStorage'
 
@@ -30,13 +32,6 @@ const initialState: UserState = {
   error: null,
 }
 
-function isTimeoutError(error: unknown): boolean {
-  if (error && typeof error === 'object' && 'code' in error) {
-    return (error as { code: string }).code === 'ECONNABORTED'
-  }
-  return error instanceof Error && error.message === 'Network Error'
-}
-
 export const loginUser = createAsyncThunk(
   'user/login',
   async (data: LoginRequest, { rejectWithValue }) => {
@@ -51,10 +46,7 @@ export const loginUser = createAsyncThunk(
         operation_id: response.operation_id || null,
       }
     } catch (error) {
-      if (isTimeoutError(error)) {
-        return rejectWithValue('Превышено время ожидания. Проверьте подключение к интернету.')
-      }
-      return rejectWithValue(error instanceof Error ? error.message : 'Ошибка входа')
+      return rejectWithValue(mapApiError(error, 'Ошибка входа'))
     }
   }
 )
@@ -73,10 +65,7 @@ export const registerUser = createAsyncThunk(
         operation_id: response.operation_id || null,
       }
     } catch (error) {
-      if (isTimeoutError(error)) {
-        return rejectWithValue('Превышено время ожидания. Проверьте подключение к интернету.')
-      }
-      return rejectWithValue(error instanceof Error ? error.message : 'Ошибка регистрации')
+      return rejectWithValue(mapApiError(error, 'Ошибка регистрации'))
     }
   }
 )
@@ -88,10 +77,7 @@ export const requestEmailCode = createAsyncThunk(
       const response = await authApi.requestEmailVerification({ email })
       return { operation_id: response.operation_id }
     } catch (error) {
-      if (isTimeoutError(error)) {
-        return rejectWithValue('Превышено время ожидания. Проверьте подключение к интернету.')
-      }
-      return rejectWithValue(error instanceof Error ? error.message : 'Ошибка отправки кода')
+      return rejectWithValue(mapApiError(error, 'Ошибка отправки кода'))
     }
   }
 )
@@ -101,28 +87,24 @@ export const approveCode = createAsyncThunk(
   async (data: { email?: string; phone_number?: string; code: string; operation_id: string }, { rejectWithValue }) => {
     try {
       const response = await authApi.approveCode(data)
+      console.log("approveCode response", response)
       return { token: response.token }
     } catch (error) {
-      if (isTimeoutError(error)) {
-        return rejectWithValue('Превышено время ожидания. Проверьте подключение к интернету.')
-      }
-      return rejectWithValue(error instanceof Error ? error.message : 'Неверный код')
+      return rejectWithValue(mapApiError(error, 'Неверный код'))
     }
   }
 )
 
-export const verifyEmail = createAsyncThunk(
-  'user/verifyEmail',
+export const loginEmail = createAsyncThunk(
+  'user/loginEmail',
   async (token: string, { rejectWithValue }) => {
+    console.log("token here", token)
     try {
-      const response = await authApi.verifyEmail(token)
+      const response = await authApi.loginEmail(token)
       tokenStorage.setTokens(response.access_token, response.refresh_token)
-      return { token: response.access_token }
+      return { token: response.access_token, user: response.user ? mapUser(response.user) : null }
     } catch (error) {
-      if (isTimeoutError(error)) {
-        return rejectWithValue('Превышено время ожидания. Проверьте подключение к интернету.')
-      }
-      return rejectWithValue(error instanceof Error ? error.message : 'Ошибка верификации')
+      return rejectWithValue(mapApiError(error, 'Ошибка верификации'))
     }
   }
 )
@@ -134,11 +116,10 @@ export const fetchCurrentUser = createAsyncThunk(
       const response = await authApi.getMe()
       return mapUser(response.user)
     } catch (error) {
-      tokenStorage.clearTokens()
-      if (isTimeoutError(error)) {
-        return rejectWithValue('Превышено время ожидания. Проверьте подключение к интернету.')
+      if ((error as AxiosError)?.response?.status === 401) {
+        tokenStorage.clearTokens()
       }
-      return rejectWithValue(error instanceof Error ? error.message : 'Ошибка получения пользователя')
+      return rejectWithValue(mapApiError(error, 'Пользователь не найден'))
     }
   }
 )
@@ -207,15 +188,16 @@ const userSlice = createSlice({
         state.loading = false
         state.error = action.payload as string
       })
-      .addCase(verifyEmail.pending, (state) => {
+      .addCase(loginEmail.pending, (state) => {
         state.loading = true
         state.error = null
       })
-      .addCase(verifyEmail.fulfilled, (state, action) => {
+      .addCase(loginEmail.fulfilled, (state, action) => {
         state.loading = false
         state.token = action.payload.token
+        if (action.payload.user) state.user = action.payload.user
       })
-      .addCase(verifyEmail.rejected, (state, action) => {
+      .addCase(loginEmail.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })

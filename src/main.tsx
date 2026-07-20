@@ -8,6 +8,7 @@ import App from "./App.tsx";
 import { branches } from "./data/branches.tsx";
 import AuthPage from "./pages/AuthPage/AuthPage";
 import RegistrationPage from "./pages/RegistrationPage/RegistrationPage";
+import BookingPage from "./pages/BookingPage/BookingPage";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={store}>
@@ -19,6 +20,8 @@ createRoot(document.getElementById("root")!).render(
           {branches.map((item, index) => (
             <Route key={index} path={item.url} element={item.element} />
           ))}
+          <Route path="/redFoxReserve" element={<BookingPage />} />
+          <Route path="/barbershopReserve" element={<BookingPage />} />
         </Routes>
       </BrowserRouter>
     </Provider>
